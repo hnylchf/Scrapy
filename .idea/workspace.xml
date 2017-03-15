@@ -43,8 +43,8 @@
       <file leaf-file-name="UrlUtil.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Util/UrlUtil.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="512">
-              <caret line="79" column="32" lean-forward="true" selection-start-line="79" selection-start-column="32" selection-end-line="79" selection-end-column="32" />
+            <state relative-caret-position="314">
+              <caret line="68" column="27" lean-forward="true" selection-start-line="68" selection-start-column="27" selection-end-line="68" selection-end-column="27" />
               <folding>
                 <element signature="e#41#50#0" expanded="true" />
               </folding>
@@ -613,8 +613,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Util/UrlUtil.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="512">
-          <caret line="79" column="32" lean-forward="true" selection-start-line="79" selection-start-column="32" selection-end-line="79" selection-end-column="32" />
+        <state relative-caret-position="314">
+          <caret line="68" column="27" lean-forward="true" selection-start-line="68" selection-start-column="27" selection-end-line="68" selection-end-column="27" />
           <folding>
             <element signature="e#41#50#0" expanded="true" />
           </folding>
