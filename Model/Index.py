@@ -1,55 +1,58 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-from BaseModel.BaseModel import BaseModel
 import sys
-from bs4 import BeautifulSoup
 sys.path.append("..")
+import logging.config
+from BaseModel.BaseModel import *
+
+from Http import *
 
 
 class Index(BaseModel):
-
+    url = ''
     def __init__(self,url):
         BaseModel.__init__(self,url)
 
-    def getContent(self,soup):
-        pc_column = soup.find(attrs={'class': 'nav nav-pc'})
-        m_column = soup.find(attrs={'class': 'nav nav-m'})
-        pc_list = self.link_parse(pc_column)
-        m_column = self.link_parse(m_column)
-        return pc_list
+    def delSoupTag(self, soup, tags):
+        super(Index, self).delSoupTag(soup, tags)
 
-    def getInfo(self,soup):
-        pass
+    def pustMq2(self, msg):
+        super(Index, self).pustMq2(msg)
 
-    def saveContent(self,soup):
-        pass
+    def img_parse(self, soup):
+        return super(Index, self).img_parse(soup)
 
-    def saveHtmlInfo(self, path, info):
-        pass
-
-    def img_parse(self,soup):
-        pass
-
-    def video_parse(self,soup): 
-        pass
+    def pustMq(self, msg):
+        super(Index, self).pustMq(msg)
 
     def link_parse(self, soup):
         return super(Index, self).link_parse(soup)
 
-    def getSoup(self,html):
-        soup = BeautifulSoup(html)
-        return soup
+    def video_parse(self, soup):
+        super(Index, self).video_parse(soup)
 
-    #删除标签
-    def delSoupTag(self,soup,tags):
-        for t in tags:
-            [s.extract() for s in soup(t)]
+    def getSoup(self, html):
+        return super(Index, self).getSoup(html)
+
+    def getInfo(self, soup):
+        return super(Index, self).getInfo(soup)
+
+    def getContent(self, soup):
+        article = soup.find(attrs={'class': 'article'})
+        content = article.find(attrs={'class': 'content'})
+        return content
+
+    def text_parse(self, soup):
+        return super(Index, self).text_parse(soup)
 
 
 if __name__ == '__main__':
-    url = 'http://mir.17173.com'
-    # url = sys.argv[1]
+    # url = 'http://wow.17173.com/content/2017-03-14/20170314093844473_all.shtml#pageanchor1'
+    url = 'http://www.baidu.com'
     a = Index(url)
-    html = a.util.getHtmlByGet()
+    h = Http(url,None)
+    html = h.send_get()
     soup = a.getSoup(html)
-    print a.getContent(soup)
+    print soup.prettify()
+    # content =  a.getContent(soup)
+    # print a.text_parse(content)

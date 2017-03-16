@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 from abc import ABCMeta, abstractmethod
 
-class SchedulerModel(object):
+class BaseSchedulerModel(object):
 
     __metaclass__ = ABCMeta
 

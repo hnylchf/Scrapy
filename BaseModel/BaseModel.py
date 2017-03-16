@@ -38,21 +38,37 @@ class BaseModel(object):
         self.main_md5 = self.util.getMd5(self.urlInfo.host)  # 主ID
         self.main_md5 = self.util.getMd5(self.urlInfo.path)  # 副ID
 
-    #获取内容块
-    @abstractmethod
-    def getContent(self,soup): pass
+    #push到mq中内容不可重复
+    def pustMq(self,msg):
+        self.mq.push(msg)
 
-    #保存内容信息
-    @abstractmethod
-    def saveContent(self, path , html): pass
+    #push到mq中 内容可重复
+    def pustMq2(self, msg):
+        self.mq.push2(msg)
 
-    #保存页面title信息
-    @abstractmethod
-    def saveHtmlInfo(self, path, info):pass
+    #获取内容
+    def getContent(self,soup):
+        pass
 
     # 获取网页信息
     @abstractmethod
-    def getInfo(self,soup): pass
+    def getInfo(self,soup):
+        # 获取网页标题
+        try:
+            title = self.util.getUtf8Str(soup.title.string)
+        except Exception, e:
+            title = ''
+        # 获取description
+        meta = soup.meta
+        try:
+            description = self.util.getUtf8Str(soup.find(attrs={"name": "description"})['content'])
+        except Exception, e:
+            description = ''
+        try:
+            keywords = self.util.getUtf8Str(soup.find(attrs={"name": "keywords"})['content'])
+        except Exception, e:
+            keywords = ''
+        return {'title': title, 'keywords': keywords, 'description': description}
 
     #链接
     @abstractmethod
@@ -72,18 +88,62 @@ class BaseModel(object):
 
     #图片
     @abstractmethod
-    def img_parse(self,soup):pass
+    def img_parse(self,soup):
+        img_list = soup.find_all('img')
+        result = []
+        for img in img_list:
+            try:
+                if img.attrs.has_key('src'):
+                    img_src = ''
+                    if img.attrs.has_key('src'):
+                        img_src = self.util.getUtf8Str(img['src'])
+                    result.append(img_src)
+            except Exception, e:
+                logger.error(e)
+        return result
 
     #视频
     @abstractmethod
     def video_parse(self,soup):pass
 
+    @abstractmethod
+    def text_parse(self,soup):
+        html = ''
+        for element in soup:
+            try:
+                if not element is None:
+                    # 内部是否包含img
+                    img = ''
+                    try:
+                        imgs = element.find_all('img')
+                        if len(imgs) > 0:
+                            for i in imgs:
+                                img_src = self.util.converUrl(i['src'])
+                                img = "[img]" + ".." + self.f.original_image + img_src + "[/img]"
+                        else:
+                            img = ''
+                    except Exception, e:
+                        img = ''
+                    if not img == '':
+                        html = html + img + "\n"
+                    else:
+                        html = html + element.text + "\n"
+
+            except Exception, e:
+                logging.error(e)
+        return html
+
+
     #获取soup
     @abstractmethod
-    def getSoup(self,html):pass
+    def getSoup(self,html):
+        soup = BeautifulSoup(html)
+        return soup
 
+    #删除soup中的标签注：tags是数组
     @abstractmethod
-    def delSoupTag(self,soup,tags):pass
-
+    def delSoupTag(self,soup,tags):
+        for t in tags:
+            [s.extract() for s in soup(t)]
 
 
