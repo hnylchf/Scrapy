@@ -6,7 +6,13 @@ import urllib2
 import cookielib
 import StringIO
 import gzip
-
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+import time
+import chardet
+import ConfigUtil
 
 
 class BaseHttp(object):
@@ -21,7 +27,6 @@ class BaseHttp(object):
         self.handlers = handler
         self.cookie_path = cookie_path
 
-
     @abstractmethod
     def send_get(self,cookie):
 
@@ -35,8 +40,6 @@ class BaseHttp(object):
         if not self.handlers is None:
             opener.addheaders = self.handlers
         res = opener.open(self.url)
-        for c in cookie:
-            print c
         self.save_cookie(cookie)
         isGzip = res.headers.get('Content-Encoding')
         if isGzip:
@@ -60,7 +63,7 @@ class BaseHttp(object):
         data = urllib.urlencode(post_data)  # 编码post数据为标准格式
         req = urllib2.Request(self.url, post_data)  # 做为data参数传给Request对象,此处也可以写成data=post_data
         response = opener.open(req)  #获取返回结果
-        print response.url
+        return response
 
 
     @abstractmethod
@@ -74,9 +77,18 @@ class BaseHttp(object):
         try:
             cookie.load(self.cookie_path, ignore_discard=True, ignore_expires=True)
         except IOError,e:
-            print e
             pass
         return cookie
+
+    @abstractmethod
+    def getHtmlByPhantomJs(self):
+        driver = webdriver.PhantomJS(
+            executable_path=ConfigUtil.getConfig('host', 'PhantomJS'))
+        driver.get(self.url)
+        data = driver.page_source  # 获取整个页面的内容
+        driver.quit()  # 关闭释放
+        return data
+
 
     #保存cookie到文件
     @abstractmethod
@@ -86,9 +98,6 @@ class BaseHttp(object):
         # ignore_discard的意思是即使cookies将被丢弃也将它保存下来
         # ignore_expires的意思是如果在该文件中cookies已经存在，则覆盖原文件写入
         cookie.save(self.cookie_path,ignore_discard=True, ignore_expires=True)
-
-
-
 
 
 

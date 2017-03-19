@@ -4,15 +4,16 @@ import sys
 
 sys.path.append("..")
 import sys
-from Util.ConfigUtil import *
-from Util.FileUtil import *
-from Util.Util import *
-from Util.UrlUtil import *
 from mq.client import *
 import logging.config
 from abc import ABCMeta, abstractmethod
 import urllib2
 from bs4 import BeautifulSoup
+import ConfigUtil
+from UrlUtil import *
+from FileUtil import *
+from BaseUtil import *
+from BaseTranslation import *
 
 
 class BaseModel(object):
@@ -24,26 +25,25 @@ class BaseModel(object):
     logger = None
     main_md5 = None
     minor_md5 = None
-    util = None
 
     def __init__(self, url):
         self.url = url
         logging.config.fileConfig("../config/logging.conf")
         self.logger = logging.getLogger()
-        self.mq = lg_mq_client(getConfig('host', 'mq_prot'))  # 获取mq链接
+        self.mq = lg_mq_client(ConfigUtil.getConfig('host', 'mq_prot'))  # 获取mq链接
         self.urlInfo = UrlUtil(url)
-        self.util = Util(url)
-        self.f = FileUtil(getConfig('host', 'host_path'))
+        u = UrlUtil(url)
+        self.f = FileUtil(ConfigUtil.getConfig('host', 'host_path'))
         self.f.initPath()  # 初始化路径
-        self.main_md5 = self.util.getMd5(self.urlInfo.host)  # 主ID
-        self.main_md5 = self.util.getMd5(self.urlInfo.path)  # 副ID
+        self.main_md5 = getMd5(self.urlInfo.host)  # 主ID
+        self.main_md5 = getMd5(self.urlInfo.path)  # 副ID
 
     #push到mq中内容不可重复
-    def pustMq(self,msg):
+    def pushMq(self,msg):
         self.mq.push(msg)
 
     #push到mq中 内容可重复
-    def pustMq2(self, msg):
+    def pushMq2(self, msg):
         self.mq.push2(msg)
 
     #获取内容
@@ -55,17 +55,17 @@ class BaseModel(object):
     def getInfo(self,soup):
         # 获取网页标题
         try:
-            title = self.util.getUtf8Str(soup.title.string)
+            title = self.getUtf8Str(soup.title.string)
         except Exception, e:
             title = ''
         # 获取description
         meta = soup.meta
         try:
-            description = self.util.getUtf8Str(soup.find(attrs={"name": "description"})['content'])
+            description = self.getUtf8Str(soup.find(attrs={"name": "description"})['content'])
         except Exception, e:
             description = ''
         try:
-            keywords = self.util.getUtf8Str(soup.find(attrs={"name": "keywords"})['content'])
+            keywords = self.getUtf8Str(soup.find(attrs={"name": "keywords"})['content'])
         except Exception, e:
             keywords = ''
         return {'title': title, 'keywords': keywords, 'description': description}
@@ -78,10 +78,10 @@ class BaseModel(object):
         for a in a_list:
             try:
                 if a.attrs.has_key('href'):
-                    a_url = self.util.getUtf8Str(a['href'])
+                    a_url = self.getUtf8Str(a['href'])
                     join_url = self.urlInfo.urlJoin(self.url,a_url)
                     if self.urlInfo.isCheckUrlHost(join_url):  # 查看是否是一个主域名下的域名
-                        result.append(a_url)
+                        result.append(join_url)
             except Exception, e:
                 self.logger.error(e)
         return result
@@ -96,7 +96,7 @@ class BaseModel(object):
                 if img.attrs.has_key('src'):
                     img_src = ''
                     if img.attrs.has_key('src'):
-                        img_src = self.util.getUtf8Str(img['src'])
+                        img_src = self.getUtf8Str(img['src'])
                     result.append(img_src)
             except Exception, e:
                 logger.error(e)
@@ -118,7 +118,7 @@ class BaseModel(object):
                         imgs = element.find_all('img')
                         if len(imgs) > 0:
                             for i in imgs:
-                                img_src = self.util.converUrl(i['src'])
+                                img_src = converUrl(i['src'])
                                 img = "[img]" + ".." + self.f.original_image + img_src + "[/img]"
                         else:
                             img = ''
@@ -146,4 +146,11 @@ class BaseModel(object):
         for t in tags:
             [s.extract() for s in soup(t)]
 
+    @abstractmethod
+    def getUtf8Str(self,str):
+        return str.encode('utf-8')
 
+    @abstractmethod
+    def translation(self,str):
+        tran = Translation(str)
+        return tran.send()

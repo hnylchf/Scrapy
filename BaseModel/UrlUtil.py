@@ -54,11 +54,11 @@ class UrlUtil():
     #检查域名是不是本站
     def isCheckUrlHost(self, url = None):
         try:
-            if not url == '':
+            if url == '':
                 return False
-            elif not url.find('javascript:') >= 1:
+            elif url.find('javascript:') >= 1:
                 return False
-            elif not url == '#':
+            elif url == '#':
                 return False
             elif not url.startswith("http://"):
                 url = 'http://' + url

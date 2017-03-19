@@ -2,6 +2,8 @@
 # -*- coding:utf-8 -*-
 
 from BaseModel.BaseHttp import *
+
+
 class Http(BaseHttp):
 
     url = None
@@ -10,7 +12,7 @@ class Http(BaseHttp):
                ('Accept-Language','zh-CN,zh;q=0.8,en;q=0.6'),
                ('Cache-Control','max-age=0'),
                ('Connection','keep-alive'),
-               ('Host','wow.17173.com'),
+               ('Host','www.yopai.com'),
                # ('Referer',''),
                ('Upgrade-Insecure-Requests',1),
                ('User-Agent','Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36')
@@ -18,10 +20,13 @@ class Http(BaseHttp):
 
     def __init__(self,url,handler):
         self.url = url
+
+
         if not handler is None:
             self.handler = handler
 
         BaseHttp.__init__(self,url,self.handler,'cookie.txt')
+
 
     def save_cookie(self, cookie):
         super(Http, self).save_cookie(cookie)
@@ -41,4 +46,7 @@ class Http(BaseHttp):
 
     def send_post(self, post_data):
         super(Http, self).send_post(post_data)
+
+    def getHtmlByPhantomJs(self):
+        return super(Http, self).getHtmlByPhantomJs()
 
