@@ -1,11 +1,14 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 sys.path.append("..")
 import logging.config
 from BaseModel.BaseModel import *
 from Http import *
-from BaseModel.BaseTranslation import*
+from FilterText import *
+
 
 class Content(BaseModel):
     def img_parse(self, soup):
@@ -39,29 +42,36 @@ class Content(BaseModel):
         super(Content, self).__init__(url)
 
     def getContent(self, soup):
-        list = soup.find(attrs={'class': 'texts'})
-        delete_list = soup.find(attrs={'id': 'zannum'})
-        delete_list.extract()
+        list = soup.find(attrs={'class': 'article'})
+        self.deleteSoupByClassName(list,['info','summary','font-size','summary'])
         return list
 
     def video_parse(self, soup):
         super(Content, self).video_parse(soup)
 
-    def translation(self, str):
-        return super(Content, self).translation(str)
+    def deleteSoupByClassName(self, soup, class_name):
+        super(Content, self).deleteSoupByClassName(soup, class_name)
+
+    def generateXml(self, info_list, list):
+        return super(Content, self).generateXml(info_list, list)
 
 
 if __name__ == '__main__':
-    url = 'http://www.yopai.com/show-2-177058-1.html'
+    url = 'http://wow.17173.com/content/2017-03-20/20170320175907101.shtml'
     con = Content(url)
+    filter = FilterText(['_17173.com', '17173', '中国游戏第一门户站'])
     http = Http(url, None)
     html = http.send_get()
     soup = con.getSoup(html)
     content = con.getContent(soup)
-    text = con.text_parse(content)
-    parse_text = con.translation(text)
-    print text
-    print parse_text
+    info = con.getInfo(soup)
 
+    for s in info:
+        str = filter.filterText(info[s])
+        info[s] = str
+    text = filter.filterText(con.text_parse(content))
+    doc = con.generateXml(info,text)
+    str =  doc.toprettyxml(indent = "\t", newl = "\n", encoding = "utf-8")
+    print str
 
 

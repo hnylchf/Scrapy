@@ -14,8 +14,6 @@ class ListPage(BaseModel):
     def img_parse(self, soup):
         return super(ListPage, self).img_parse(soup)
 
-    def translation(self, str):
-        return super(ListPage, self).translation(str)
 
     def getSoup(self, html):
         return super(ListPage, self).getSoup(html)
@@ -32,6 +30,7 @@ class ListPage(BaseModel):
         for l in h2_list:
             href_list.append(super(ListPage, self).link_parse(l))
         return href_list
+
     def pushMq(self, msg):
         super(ListPage, self).pushMq(msg)
 
@@ -43,8 +42,6 @@ class ListPage(BaseModel):
 
     def pushMq2(self, msg):
         super(ListPage, self).pushMq2(msg)
-
-
 
     def getContent(self, soup):
         list = soup.find(attrs={'id': 'list_data'})

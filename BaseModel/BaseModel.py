@@ -13,8 +13,7 @@ import ConfigUtil
 from UrlUtil import *
 from FileUtil import *
 from BaseUtil import *
-from BaseTranslation import *
-
+import xml.dom.minidom
 
 class BaseModel(object):
     __metaclass__ = ABCMeta
@@ -108,31 +107,29 @@ class BaseModel(object):
 
     @abstractmethod
     def text_parse(self,soup):
-        html = ''
+        result = []
+        text = ''
         for element in soup:
             try:
                 if not element is None:
                     # 内部是否包含img
-                    img = ''
                     try:
                         imgs = element.find_all('img')
                         if len(imgs) > 0:
+                            result.append(['content', text])
+                            text = ''
                             for i in imgs:
                                 img_src = converUrl(i['src'])
-                                img = "[img]" + ".." + self.f.original_image + img_src + "[/img]"
-                        else:
-                            img = ''
+                                result.append(['img', img_src])
                     except Exception, e:
-                        img = ''
-                    if not img == '':
-                        html = html + img + "\n"
-                    else:
-                        html = html + element.text + "\n"
+                        pass
+                    text = text + element.text + '\n'
 
             except Exception, e:
                 logging.error(e)
-        return html
-
+        if not text is None and not text == '':
+            article_result = ['content', text]
+        return result
 
     #获取soup
     @abstractmethod
@@ -151,6 +148,49 @@ class BaseModel(object):
         return str.encode('utf-8')
 
     @abstractmethod
-    def translation(self,str):
-        tran = Translation(str)
-        return tran.send()
+    def deleteSoupByClassName(self,soup,class_name):
+        try:
+            for name in class_name:
+                delete_list = soup.find(attrs={'class': name})
+                delete_list.extract()
+        except Exception,e:
+            pass
+
+    def generateXml(self,info_list,list):
+        doc = xml.dom.minidom.Document()
+        root = doc.createElement('data')
+        doc.appendChild(root)
+        info_manager = doc.createElement('info')
+        title_nodeName = doc.createElement('title')
+        title_nodeName.appendChild(doc.createTextNode(info_list['title']))
+
+        keywords_nodeName = doc.createElement('keywords')
+        keywords_nodeName.appendChild(doc.createTextNode(info_list['keywords']))
+
+        description_nodeName = doc.createElement('description')
+        description_nodeName.appendChild(doc.createTextNode(info_list['description']))
+
+        info_manager.appendChild(title_nodeName)
+        info_manager.appendChild(keywords_nodeName)
+        info_manager.appendChild(description_nodeName)
+
+        #添加到root中
+        root.appendChild(info_manager)
+
+        article_manager = doc.createElement('article')
+
+        for str in list:
+            article_node = None
+            if str[0] == 'img':
+                article_node = doc.createElement('img')
+            elif str[0] == 'content':
+                article_node = doc.createElement('content')
+
+            if not article_node is None:
+                article_node.appendChild(doc.createTextNode(str[1]))
+
+            article_manager.appendChild(article_node)
+
+
+        root.appendChild(article_manager)
+        return doc
